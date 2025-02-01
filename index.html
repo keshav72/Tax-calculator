@@ -6,16 +6,55 @@
   <title>Tax Calculator</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      max-width: 800px;
+      width: 100%;
     }
     h1 {
       color: #333;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 28px;
+    }
+    label {
+      font-size: 18px;
+      color: #555;
     }
     input {
-      padding: 10px;
+      padding: 12px;
       font-size: 16px;
-      width: 200px;
+      width: 100%;
+      margin-top: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      text-align: right;
+    }
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+      width: 100%;
+    }
+    button:hover {
+      background: #0056b3;
     }
     table {
       width: 100%;
@@ -24,51 +63,77 @@
     }
     th, td {
       border: 1px solid #ddd;
-      padding: 8px;
+      padding: 12px;
       text-align: center;
     }
     th {
-      background-color: #f2f2f2;
+      background-color: #f8f9fa;
+      font-weight: bold;
     }
-    .verdict {
+    .verdict, .monthly {
       margin-top: 20px;
       font-size: 18px;
+      color: #333;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    .verdict p, .monthly p {
+      margin: 5px 0;
+    }
+    .highlight {
+      color: #007bff;
       font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>Tax Calculator: Current vs. Proposed Regime</h1>
-  <label for="income">Enter Annual Income (₹):</label>
-  <input type="number" id="income" placeholder="Enter income">
-  <button onclick="calculateTax()">Calculate</button>
+  <div class="container">
+    <h1>Tax Calculator: Current vs. Proposed Regime</h1>
+    <label for="income">Enter Annual Income (₹):</label>
+    <input type="text" id="income" placeholder="Enter income" oninput="formatInput(this)">
+    <button onclick="calculateTax()">Calculate</button>
 
-  <table id="taxTable">
-    <thead>
-      <tr>
-        <th>Income Slab (₹)</th>
-        <th>Current Rate</th>
-        <th>Current Tax (₹)</th>
-        <th>Proposed Rate</th>
-        <th>Proposed Tax (₹)</th>
-        <th>Savings (₹)</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Rows will be dynamically added here -->
-    </tbody>
-  </table>
+    <table id="taxTable">
+      <thead>
+        <tr>
+          <th>Income Slab (₹)</th>
+          <th>Current Rate</th>
+          <th>Current Tax (₹)</th>
+          <th>Proposed Rate</th>
+          <th>Proposed Tax (₹)</th>
+          <th>Savings (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be dynamically added here -->
+      </tbody>
+    </table>
 
-  <div class="verdict" id="verdict"></div>
-  <div class="monthly" id="monthly"></div>
+    <div class="verdict" id="verdict"></div>
+    <div class="monthly" id="monthly"></div>
+  </div>
 
   <script>
+    // Function to format input with commas (Indian system)
+    function formatInput(input) {
+      let value = input.value.replace(/,/g, '');
+      if (!isNaN(value)) {
+        input.value = Number(value).toLocaleString('en-IN');
+      }
+    }
+
+    // Function to calculate tax
     function calculateTax() {
-      const income = parseFloat(document.getElementById('income').value);
+      const incomeInput = document.getElementById('income').value;
+      const income = parseFloat(incomeInput.replace(/,/g, ''));
       if (isNaN(income) || income < 0) {
         alert("Please enter a valid income.");
         return;
       }
+
+      // Apply standard deduction of ₹75,000
+      const taxableIncome = Math.max(income - 75000, 0);
 
       const slabs = [
         { min: 0, max: 300000, currentRate: 0, proposedRate: 0 },
@@ -89,43 +154,43 @@
       tableBody.innerHTML = "";
 
       slabs.forEach(slab => {
-        if (income > slab.min) {
-          const slabIncome = Math.min(income, slab.max) - slab.min;
-          const currentSlabTax = (slabIncome * slab.currentRate) / 100;
-          const proposedSlabTax = (slabIncome * slab.proposedRate) / 100;
+        if (taxableIncome > slab.min) {
+          const slabIncome = Math.min(taxableIncome, slab.max) - slab.min;
+          const currentSlabTax = Math.round((slabIncome * slab.currentRate) / 100);
+          const proposedSlabTax = Math.round((slabIncome * slab.proposedRate) / 100);
           currentTax += currentSlabTax;
           proposedTax += proposedSlabTax;
 
           const row = `<tr>
-            <td>${slab.min.toLocaleString()} - ${slab.max === Infinity ? "Above" : slab.max.toLocaleString()}</td>
+            <td>${slab.min.toLocaleString('en-IN')} - ${slab.max === Infinity ? "Above" : slab.max.toLocaleString('en-IN')}</td>
             <td>${slab.currentRate}%</td>
-            <td>${currentSlabTax.toLocaleString()}</td>
+            <td>${currentSlabTax.toLocaleString('en-IN')}</td>
             <td>${slab.proposedRate}%</td>
-            <td>${proposedSlabTax.toLocaleString()}</td>
-            <td>${(currentSlabTax - proposedSlabTax).toLocaleString()}</td>
+            <td>${proposedSlabTax.toLocaleString('en-IN')}</td>
+            <td>${(currentSlabTax - proposedSlabTax).toLocaleString('en-IN')}</td>
           </tr>`;
           tableBody.innerHTML += row;
         }
       });
 
       const savings = currentTax - proposedTax;
-      const savingsPercentage = ((savings / currentTax) * 100).toFixed(2);
+      const savingsPercentage = Math.round((savings / currentTax) * 100);
 
       const verdict = document.getElementById('verdict');
       verdict.innerHTML = `
-        <p>Total Tax Under Current Regime: ₹${currentTax.toLocaleString()}</p>
-        <p>Total Tax Under Proposed Regime: ₹${proposedTax.toLocaleString()}</p>
-        <p>Total Tax Savings: ₹${savings.toLocaleString()} (${savingsPercentage}%)</p>
+        <p>Total Tax Under Current Regime: ₹<span class="highlight">${currentTax.toLocaleString('en-IN')}</span></p>
+        <p>Total Tax Under Proposed Regime: ₹<span class="highlight">${proposedTax.toLocaleString('en-IN')}</span></p>
+        <p>Total Tax Savings: ₹<span class="highlight">${savings.toLocaleString('en-IN')}</span> (${savingsPercentage}%)</p>
       `;
 
       const monthly = document.getElementById('monthly');
-      const currentMonthly = (income - currentTax) / 12;
-      const proposedMonthly = (income - proposedTax) / 12;
+      const currentMonthly = Math.round((income - currentTax) / 12);
+      const proposedMonthly = Math.round((income - proposedTax) / 12);
       const increment = proposedMonthly - currentMonthly;
       monthly.innerHTML = `
-        <p>Current Monthly Income (After Tax): ₹${currentMonthly.toLocaleString()}</p>
-        <p>New Monthly Income (After Tax): ₹${proposedMonthly.toLocaleString()}</p>
-        <p>Monthly Increment: ₹${increment.toLocaleString()}</p>
+        <p>Current Monthly Income (After Tax): ₹<span class="highlight">${currentMonthly.toLocaleString('en-IN')}</span></p>
+        <p>New Monthly Income (After Tax): ₹<span class="highlight">${proposedMonthly.toLocaleString('en-IN')}</span></p>
+        <p>Monthly Increment: ₹<span class="highlight">${increment.toLocaleString('en-IN')}</span></p>
       `;
     }
   </script>
