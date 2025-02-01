@@ -188,13 +188,17 @@
         currentTax = 0;
       }
 
+      //Add Cess to Tax
+      proposedTax = proposedTax * 1.04
+      currentTax = currentTax * 1.04
+
       const savings = currentTax - proposedTax;
       const savingsPercentage = Math.round((savings / currentTax) * 100);
 
       const verdict = document.getElementById('verdict');
       verdict.innerHTML = `
-        <p>Total Tax Under Current Regime: ₹<span class="highlight">${currentTax.toLocaleString('en-IN')}</span></p>
-        <p>Total Tax Under Proposed Regime: ₹<span class="highlight">${proposedTax.toLocaleString('en-IN')}</span></p>
+        <p>Total Tax Under Current Regime + Cess (4%): ₹<span class="highlight">${currentTax.toLocaleString('en-IN')}</span></p>
+        <p>Total Tax Under Proposed Regime + Cess (4%): ₹<span class="highlight">${proposedTax.toLocaleString('en-IN')}</span></p>
         <p>Total Tax Savings: ₹<span class="highlight">${savings.toLocaleString('en-IN')}</span> (${savingsPercentage}%)</p>
       `;
 
