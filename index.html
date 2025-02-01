@@ -107,7 +107,6 @@
             <th>Current Tax (₹)</th>
             <th>Proposed Rate</th>
             <th>Proposed Tax (₹)</th>
-            <th>Cess (4%)</th>
             <th>Savings (₹)</th>
           </tr>
         </thead>
@@ -171,16 +170,12 @@
           currentTax += currentSlabTax;
           proposedTax += proposedSlabTax;
 
-          const currentCess = Math.round(currentSlabTax * 0.04);
-          const proposedCess = Math.round(proposedSlabTax * 0.04);
-
           const row = `<tr>
             <td>${slab.min.toLocaleString('en-IN')} - ${slab.max === Infinity ? "Above" : slab.max.toLocaleString('en-IN')}</td>
             <td>${slab.currentRate}%</td>
             <td>${currentSlabTax.toLocaleString('en-IN')}</td>
             <td>${slab.proposedRate}%</td>
             <td>${proposedSlabTax.toLocaleString('en-IN')}</td>
-            <td>${currentCess.toLocaleString('en-IN')} / ${proposedCess.toLocaleString('en-IN')}</td>
             <td>${(currentSlabTax - proposedSlabTax).toLocaleString('en-IN')}</td>
           </tr>`;
           tableBody.innerHTML += row;
@@ -196,38 +191,35 @@
         currentTax = 0;
       }
 
-      // Add Cess to Tax
-      const currentTotalCess = Math.round(currentTax * 0.04);
-      const proposedTotalCess = Math.round(proposedTax * 0.04);
-      currentTax += currentTotalCess;
-      proposedTax += proposedTotalCess;
+      // Add 4% cess to the total tax
+      const currentTotalWithCess = Math.round(currentTax * 1.04);
+      const proposedTotalWithCess = Math.round(proposedTax * 1.04);
 
-      const savings = currentTax - proposedTax;
-      const savingsPercentage = Math.round((savings / currentTax) * 100);
+      const savings = currentTotalWithCess - proposedTotalWithCess;
+      const savingsPercentage = Math.round((savings / currentTotalWithCess) * 100);
 
-      // Add total row
+      // Add total row with cess
       const tableFoot = document.querySelector("#taxTable tfoot");
       tableFoot.innerHTML = `
         <tr>
-          <td colspan="2"><strong>Total</strong></td>
-          <td><strong>${(currentTax - currentTotalCess).toLocaleString('en-IN')}</strong></td>
+          <td colspan="2"><strong>Total Tax + Cess (4%)</strong></td>
+          <td><strong>${currentTotalWithCess.toLocaleString('en-IN')}</strong></td>
           <td colspan="1"></td>
-          <td><strong>${(proposedTax - proposedTotalCess).toLocaleString('en-IN')}</strong></td>
-          <td><strong>${currentTotalCess.toLocaleString('en-IN')} / ${proposedTotalCess.toLocaleString('en-IN')}</strong></td>
+          <td><strong>${proposedTotalWithCess.toLocaleString('en-IN')}</strong></td>
           <td><strong>${savings.toLocaleString('en-IN')}</strong></td>
         </tr>
       `;
 
       const verdict = document.getElementById('verdict');
       verdict.innerHTML = `
-        <p>Total Tax Under Current Regime + Cess (4%): ₹<span class="highlight">${currentTax.toLocaleString('en-IN')}</span></p>
-        <p>Total Tax Under Proposed Regime + Cess (4%): ₹<span class="highlight">${proposedTax.toLocaleString('en-IN')}</span></p>
+        <p>Total Tax Under Current Regime + Cess (4%): ₹<span class="highlight">${currentTotalWithCess.toLocaleString('en-IN')}</span></p>
+        <p>Total Tax Under Proposed Regime + Cess (4%): ₹<span class="highlight">${proposedTotalWithCess.toLocaleString('en-IN')}</span></p>
         <p>Total Tax Savings: ₹<span class="highlight">${savings.toLocaleString('en-IN')}</span> (${savingsPercentage}%)</p>
       `;
 
       const monthly = document.getElementById('monthly');
-      const currentMonthly = Math.round((income - currentTax) / 12);
-      const proposedMonthly = Math.round((income - proposedTax) / 12);
+      const currentMonthly = Math.round((income - currentTotalWithCess) / 12);
+      const proposedMonthly = Math.round((income - proposedTotalWithCess) / 12);
       const increment = proposedMonthly - currentMonthly;
       const incrementPercentage = Math.round((increment / currentMonthly) * 100);
       monthly.innerHTML = `
