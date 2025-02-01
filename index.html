@@ -56,10 +56,14 @@
     button:hover {
       background: #0056b3;
     }
+    .table-container {
+      overflow-x: auto;
+      margin-top: 20px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+      min-width: 600px;
     }
     th, td {
       border: 1px solid #ddd;
@@ -94,21 +98,23 @@
     <input type="text" id="income" placeholder="Enter income" oninput="formatInput(this)">
     <button onclick="calculateTax()">Calculate</button>
 
-    <table id="taxTable">
-      <thead>
-        <tr>
-          <th>Income Slab (₹)</th>
-          <th>Current Rate</th>
-          <th>Current Tax (₹)</th>
-          <th>Proposed Rate</th>
-          <th>Proposed Tax (₹)</th>
-          <th>Savings (₹)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Rows will be dynamically added here -->
-      </tbody>
-    </table>
+    <div class="table-container">
+      <table id="taxTable">
+        <thead>
+          <tr>
+            <th>Income Slab (₹)</th>
+            <th>Current Rate</th>
+            <th>Current Tax (₹)</th>
+            <th>Proposed Rate</th>
+            <th>Proposed Tax (₹)</th>
+            <th>Savings (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows will be dynamically added here -->
+        </tbody>
+      </table>
+    </div>
 
     <div class="verdict" id="verdict"></div>
     <div class="monthly" id="monthly"></div>
@@ -173,6 +179,15 @@
         }
       });
 
+      // If taxable income is less than ₹12,75,000, tax under proposed regime is 0
+      if (taxableIncome < 1200000) {
+        proposedTax = 0;
+      }
+
+      if (taxableIncome < 800000) {
+        currentTax = 0;
+      }
+
       const savings = currentTax - proposedTax;
       const savingsPercentage = Math.round((savings / currentTax) * 100);
 
@@ -187,9 +202,10 @@
       const currentMonthly = Math.round((income - currentTax) / 12);
       const proposedMonthly = Math.round((income - proposedTax) / 12);
       const increment = proposedMonthly - currentMonthly;
+      const incrementPercentage = Math.round((increment / currentMonthly) * 100);
       monthly.innerHTML = `
         <p>Current Monthly Income (After Tax): ₹<span class="highlight">${currentMonthly.toLocaleString('en-IN')}</span></p>
-        <p>New Monthly Income (After Tax): ₹<span class="highlight">${proposedMonthly.toLocaleString('en-IN')}</span></p>
+        <p>New Monthly Income (After Tax): ₹<span class="highlight">${proposedMonthly.toLocaleString('en-IN')}</span> (${incrementPercentage}%)</p>
         <p>Monthly Increment: ₹<span class="highlight">${increment.toLocaleString('en-IN')}</span></p>
       `;
     }
