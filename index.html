@@ -107,12 +107,16 @@
             <th>Current Tax (₹)</th>
             <th>Proposed Rate</th>
             <th>Proposed Tax (₹)</th>
+            <th>Cess (4%)</th>
             <th>Savings (₹)</th>
           </tr>
         </thead>
         <tbody>
           <!-- Rows will be dynamically added here -->
         </tbody>
+        <tfoot>
+          <!-- Total row will be dynamically added here -->
+        </tfoot>
       </table>
     </div>
 
@@ -167,12 +171,16 @@
           currentTax += currentSlabTax;
           proposedTax += proposedSlabTax;
 
+          const currentCess = Math.round(currentSlabTax * 0.04);
+          const proposedCess = Math.round(proposedSlabTax * 0.04);
+
           const row = `<tr>
             <td>${slab.min.toLocaleString('en-IN')} - ${slab.max === Infinity ? "Above" : slab.max.toLocaleString('en-IN')}</td>
             <td>${slab.currentRate}%</td>
             <td>${currentSlabTax.toLocaleString('en-IN')}</td>
             <td>${slab.proposedRate}%</td>
             <td>${proposedSlabTax.toLocaleString('en-IN')}</td>
+            <td>${currentCess.toLocaleString('en-IN')} / ${proposedCess.toLocaleString('en-IN')}</td>
             <td>${(currentSlabTax - proposedSlabTax).toLocaleString('en-IN')}</td>
           </tr>`;
           tableBody.innerHTML += row;
@@ -188,12 +196,27 @@
         currentTax = 0;
       }
 
-      //Add Cess to Tax
-      proposedTax = proposedTax * 1.04
-      currentTax = currentTax * 1.04
+      // Add Cess to Tax
+      const currentTotalCess = Math.round(currentTax * 0.04);
+      const proposedTotalCess = Math.round(proposedTax * 0.04);
+      currentTax += currentTotalCess;
+      proposedTax += proposedTotalCess;
 
       const savings = currentTax - proposedTax;
       const savingsPercentage = Math.round((savings / currentTax) * 100);
+
+      // Add total row
+      const tableFoot = document.querySelector("#taxTable tfoot");
+      tableFoot.innerHTML = `
+        <tr>
+          <td colspan="2"><strong>Total</strong></td>
+          <td><strong>${(currentTax - currentTotalCess).toLocaleString('en-IN')}</strong></td>
+          <td colspan="1"></td>
+          <td><strong>${(proposedTax - proposedTotalCess).toLocaleString('en-IN')}</strong></td>
+          <td><strong>${currentTotalCess.toLocaleString('en-IN')} / ${proposedTotalCess.toLocaleString('en-IN')}</strong></td>
+          <td><strong>${savings.toLocaleString('en-IN')}</strong></td>
+        </tr>
+      `;
 
       const verdict = document.getElementById('verdict');
       verdict.innerHTML = `
