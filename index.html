@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tax Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 200px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .verdict {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tax Calculator: Current vs. Proposed Regime</h1>
+  <label for="income">Enter Annual Income (₹):</label>
+  <input type="number" id="income" placeholder="Enter income">
+  <button onclick="calculateTax()">Calculate</button>
+
+  <table id="taxTable">
+    <thead>
+      <tr>
+        <th>Income Slab (₹)</th>
+        <th>Current Rate</th>
+        <th>Current Tax (₹)</th>
+        <th>Proposed Rate</th>
+        <th>Proposed Tax (₹)</th>
+        <th>Savings (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows will be dynamically added here -->
+    </tbody>
+  </table>
+
+  <div class="verdict" id="verdict"></div>
+  <div class="monthly" id="monthly"></div>
+
+  <script>
+    function calculateTax() {
+      const income = parseFloat(document.getElementById('income').value);
+      if (isNaN(income) || income < 0) {
+        alert("Please enter a valid income.");
+        return;
+      }
+
+      const slabs = [
+        { min: 0, max: 300000, currentRate: 0, proposedRate: 0 },
+        { min: 300001, max: 400000, currentRate: 5, proposedRate: 0 },
+        { min: 400001, max: 700000, currentRate: 5, proposedRate: 5 },
+        { min: 700001, max: 800000, currentRate: 10, proposedRate: 5 },
+        { min: 800001, max: 1000000, currentRate: 10, proposedRate: 10 },
+        { min: 1000001, max: 1200000, currentRate: 15, proposedRate: 10 },
+        { min: 1200001, max: 1500000, currentRate: 20, proposedRate: 15 },
+        { min: 1500001, max: 1600000, currentRate: 30, proposedRate: 15 },
+        { min: 1600001, max: 2000000, currentRate: 30, proposedRate: 20 },
+        { min: 2000001, max: 2400000, currentRate: 30, proposedRate: 25 },
+        { min: 2400001, max: Infinity, currentRate: 30, proposedRate: 30 }
+      ];
+
+      let currentTax = 0, proposedTax = 0;
+      let tableBody = document.querySelector("#taxTable tbody");
+      tableBody.innerHTML = "";
+
+      slabs.forEach(slab => {
+        if (income > slab.min) {
+          const slabIncome = Math.min(income, slab.max) - slab.min;
+          const currentSlabTax = (slabIncome * slab.currentRate) / 100;
+          const proposedSlabTax = (slabIncome * slab.proposedRate) / 100;
+          currentTax += currentSlabTax;
+          proposedTax += proposedSlabTax;
+
+          const row = `<tr>
+            <td>${slab.min.toLocaleString()} - ${slab.max === Infinity ? "Above" : slab.max.toLocaleString()}</td>
+            <td>${slab.currentRate}%</td>
+            <td>${currentSlabTax.toLocaleString()}</td>
+            <td>${slab.proposedRate}%</td>
+            <td>${proposedSlabTax.toLocaleString()}</td>
+            <td>${(currentSlabTax - proposedSlabTax).toLocaleString()}</td>
+          </tr>`;
+          tableBody.innerHTML += row;
+        }
+      });
+
+      const savings = currentTax - proposedTax;
+      const savingsPercentage = ((savings / currentTax) * 100).toFixed(2);
+
+      const verdict = document.getElementById('verdict');
+      verdict.innerHTML = `
+        <p>Total Tax Under Current Regime: ₹${currentTax.toLocaleString()}</p>
+        <p>Total Tax Under Proposed Regime: ₹${proposedTax.toLocaleString()}</p>
+        <p>Total Tax Savings: ₹${savings.toLocaleString()} (${savingsPercentage}%)</p>
+      `;
+
+      const monthly = document.getElementById('monthly');
+      const currentMonthly = (income - currentTax) / 12;
+      const proposedMonthly = (income - proposedTax) / 12;
+      const increment = proposedMonthly - currentMonthly;
+      monthly.innerHTML = `
+        <p>Current Monthly Income (After Tax): ₹${currentMonthly.toLocaleString()}</p>
+        <p>New Monthly Income (After Tax): ₹${proposedMonthly.toLocaleString()}</p>
+        <p>Monthly Increment: ₹${increment.toLocaleString()}</p>
+      `;
+    }
+  </script>
+</body>
+</html>
